@@ -1,0 +1,1396 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#211A20">
+  <meta name="description" content="30 · 正当闪耀。送给最爱的你。">
+  <title>30 · 正当闪耀</title>
+
+  <style>
+    :root {
+      --bg: #211A20;
+      --bg-soft: #30232B;
+      --rose: #B98791;
+      --rose-light: #D9B5B9;
+      --gold: #D7BE9A;
+      --ivory: #F3E8DF;
+      --muted: #BCA9A8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      background: var(--bg);
+      scroll-behavior: smooth;
+      scroll-snap-type: y proximity;
+    }
+
+    body {
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--ivory);
+      font-family:
+        "PingFang SC",
+        "Microsoft YaHei",
+        "Noto Sans CJK SC",
+        sans-serif;
+      overflow-x: hidden;
+    }
+
+    #canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .ambient {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(
+          ellipse at 50% 45%,
+          rgba(110, 69, 83, 0.13),
+          transparent 65%
+        ),
+        linear-gradient(
+          180deg,
+          rgba(33, 26, 32, 0.05),
+          rgba(33, 26, 32, 0.3)
+        );
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+    }
+
+    section {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      scroll-snap-align: start;
+      padding: 35px 22px;
+    }
+
+    .scene-content {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ================================
+       第一幕：30 · 独立的大型粒子爱心
+    ================================= */
+
+    #scene1 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-content {
+      width: 100%;
+      min-height: calc(100svh - 70px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 0 35px;
+    }
+
+    .hero-eyebrow {
+      font-family: Georgia, serif;
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: var(--gold);
+      opacity: 0.85;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .hero-number {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(82px, 15vw, 126px);
+      line-height: 0.98;
+      font-weight: 400;
+      letter-spacing: -5px;
+      color: var(--ivory);
+      text-shadow:
+        0 0 28px rgba(217, 181, 185, 0.16),
+        0 0 70px rgba(185, 135, 145, 0.12);
+      animation: numberReveal 1.8s ease both;
+    }
+
+    /*
+      爱心独立展示区域。
+      Canvas 粒子只在这个区域的中心汇聚，
+      不会画在数字或文字背后。
+    */
+    .heart-stage {
+      width: min(94vw, 680px);
+      height: clamp(300px, 47svh, 455px);
+      position: relative;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .heart-stage::before {
+      content: "";
+      position: absolute;
+      width: 90%;
+      height: 78%;
+      left: 5%;
+      top: 11%;
+      border-radius: 50%;
+      background: rgba(185, 135, 145, 0.15);
+      filter: blur(75px);
+      animation: heartGlow 4s ease-in-out infinite;
+    }
+
+    .hero-heart-label {
+      font-family: Georgia, "Noto Serif SC", serif;
+      font-size: clamp(24px, 5vw, 32px);
+      letter-spacing: 9px;
+      padding-left: 9px;
+      font-weight: 400;
+      color: var(--rose-light);
+      margin-top: -2px;
+      text-shadow: 0 0 25px rgba(217, 181, 185, 0.2);
+    }
+
+    .hero-subtitle {
+      margin-top: 17px;
+      font-size: 13px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 9px;
+      color: rgba(243, 232, 223, 0.48);
+      font-size: 9px;
+      letter-spacing: 3px;
+      white-space: nowrap;
+      animation: hintFloat 2.5s ease-in-out infinite;
+    }
+
+    .scroll-line {
+      height: 29px;
+      width: 1px;
+      background: linear-gradient(
+        to bottom,
+        var(--gold),
+        transparent
+      );
+    }
+
+    /* ================================
+       第二幕：心形烟花
+    ================================= */
+
+    #scene2 {
+      background:
+        radial-gradient(
+          ellipse at 50% 55%,
+          rgba(94, 55, 71, 0.15),
+          transparent 65%
+        );
+    }
+
+    .scene-kicker {
+      color: var(--gold);
+      font-family: Georgia, serif;
+      font-size: 10px;
+      letter-spacing: 5px;
+      margin-bottom: 24px;
+      opacity: 0.85;
+    }
+
+    .scene-title {
+      font-family: Georgia, "Noto Serif SC", serif;
+      font-weight: 400;
+      font-size: clamp(30px, 7vw, 52px);
+      letter-spacing: 5px;
+      line-height: 1.5;
+      color: var(--ivory);
+      text-shadow: 0 0 35px rgba(217, 181, 185, 0.13);
+    }
+
+    .scene-description {
+      margin-top: 20px;
+      font-size: 13px;
+      line-height: 2.2;
+      letter-spacing: 2px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ================================
+       第三幕：漂浮的小爱心
+    ================================= */
+
+    #scene3 {
+      background:
+        radial-gradient(
+          ellipse at 50% 50%,
+          rgba(115, 72, 87, 0.13),
+          transparent 70%
+        );
+    }
+
+    .scene3-title {
+      font-family: Georgia, "Noto Serif SC", serif;
+      font-weight: 400;
+      font-size: clamp(29px, 7vw, 48px);
+      letter-spacing: 4px;
+      line-height: 1.8;
+      color: var(--ivory);
+    }
+
+    .scene3-title span {
+      color: var(--rose-light);
+    }
+
+    .scene3-description {
+      font-size: 13px;
+      line-height: 2.4;
+      color: var(--muted);
+      letter-spacing: 2px;
+      margin-top: 22px;
+    }
+
+    /* ================================
+       第四幕：生日告白
+    ================================= */
+
+    #scene4 {
+      background:
+        radial-gradient(
+          ellipse at 50% 48%,
+          rgba(119, 76, 88, 0.2),
+          transparent 65%
+        );
+    }
+
+    .final-title {
+      font-family: Georgia, "Noto Serif SC", serif;
+      font-size: clamp(32px, 7vw, 52px);
+      font-weight: 400;
+      letter-spacing: 5px;
+      line-height: 1.6;
+      color: var(--ivory);
+    }
+
+    .final-message {
+      margin-top: 25px;
+      font-size: 14px;
+      letter-spacing: 2px;
+      line-height: 2.5;
+      color: var(--rose-light);
+      font-weight: 300;
+    }
+
+    .final-signature {
+      margin-top: 52px;
+      font-family: Georgia, "Noto Serif SC", serif;
+      font-size: 16px;
+      letter-spacing: 3px;
+      color: var(--gold);
+    }
+
+    .final-date {
+      margin-top: 15px;
+      font-family: Georgia, serif;
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: rgba(243, 232, 223, 0.45);
+    }
+
+    .fade-in {
+      animation: fadeIn 2s ease both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes numberReveal {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+        filter: blur(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes heartGlow {
+      0%, 100% {
+        opacity: 0.65;
+        transform: scale(0.9);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.12);
+      }
+    }
+
+    @keyframes hintFloat {
+      0%, 100% {
+        opacity: 0.5;
+        transform: translate(-50%, 0);
+      }
+      50% {
+        opacity: 0.9;
+        transform: translate(-50%, 7px);
+      }
+    }
+
+    @media (max-width: 600px) {
+      section {
+        padding: 25px 18px;
+      }
+
+      .hero-content {
+        padding-top: 5px;
+        padding-bottom: 35px;
+      }
+
+      .heart-stage {
+        width: 96vw;
+        height: clamp(290px, 43svh, 370px);
+      }
+
+      .hero-subtitle {
+        font-size: 11px;
+        letter-spacing: 2px;
+      }
+
+      .scene-title {
+        letter-spacing: 3px;
+      }
+
+      .scene-description {
+        font-size: 12px;
+      }
+    }
+
+    @media (max-height: 650px) {
+      .hero-content {
+        padding-top: 0;
+        padding-bottom: 28px;
+      }
+
+      .hero-number {
+        font-size: 76px;
+      }
+
+      .heart-stage {
+        height: 260px;
+      }
+
+      .hero-subtitle {
+        margin-top: 10px;
+      }
+
+      .scroll-hint {
+        bottom: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="ambient"></div>
+
+  <main>
+
+    <!-- 第一幕：30 · 独立的大型粒子爱心 -->
+    <section id="scene1">
+      <div class="scene-content hero-content">
+
+        <div class="hero-eyebrow">
+          A SPECIAL DAY FOR YOU
+        </div>
+
+        <div class="hero-number">30</div>
+
+        <div class="heart-stage" aria-hidden="true"></div>
+
+        <div class="hero-heart-label">
+          正当闪耀
+        </div>
+
+        <div class="hero-subtitle">
+          三十而已，万般美好。
+        </div>
+
+      </div>
+
+      <div class="scroll-hint">
+        <span>向下滑动</span>
+        <div class="scroll-line"></div>
+      </div>
+    </section>
+
+    <!-- 第二幕：心形烟花 -->
+    <section id="scene2">
+      <div class="scene-content fade-in">
+        <div class="scene-kicker">
+          A SKY FULL OF LOVE
+        </div>
+
+        <h2 class="scene-title">
+          愿你的每一天<br>
+          都有光芒绽放
+        </h2>
+
+        <p class="scene-description">
+          愿所有美好如期而至<br>
+          愿每一份热爱，都有回响
+        </p>
+      </div>
+    </section>
+
+    <!-- 第三幕：漂浮的爱心 -->
+    <section id="scene3">
+      <div class="scene-content fade-in">
+        <div class="scene-kicker">
+          ALWAYS BE YOURSELF
+        </div>
+
+        <h2 class="scene3-title">
+          永远<span>热爱</span><br>
+          永远<span>明媚</span>
+        </h2>
+
+        <p class="scene3-description">
+          愿你眼里有星辰<br>
+          心中有热爱<br>
+          永远自由，永远灿烂
+        </p>
+      </div>
+    </section>
+
+    <!-- 第四幕：生日告白 -->
+    <section id="scene4">
+      <div class="scene-content fade-in">
+        <div class="scene-kicker">
+          WITH ALL MY LOVE
+        </div>
+
+        <h2 class="final-title">
+          生日快乐<br>
+          我最爱的老婆
+        </h2>
+
+        <p class="final-message">
+          愿未来的每一个三十岁<br>
+          都比今天更加幸福、更加闪耀。<br>
+          往后的每一年，我都陪你一起走。
+        </p>
+
+        <div class="final-signature">
+          永远爱你的老公
+        </div>
+
+        <div class="final-date">
+          2026 · 11 · 10
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const COLORS = {
+        rose: "#B98791",
+        roseLight: "#D9B5B9",
+        gold: "#D7BE9A",
+        ivory: "#F3E8DF"
+      };
+
+      let W = window.innerWidth;
+      let H = window.innerHeight;
+      let DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+      let scrollY = window.scrollY;
+      let activeScene = 0;
+
+      let heartParticles = [];
+      let fireworkParticles = [];
+      let floatingHearts = [];
+      let candleParticles = [];
+      let stars = [];
+
+      let lastFirework = 0;
+      let lastCandle = 0;
+
+      const pageStartTime = performance.now();
+
+      const random = (min, max) =>
+        Math.random() * (max - min) + min;
+
+      const clamp = (value, min, max) =>
+        Math.max(min, Math.min(max, value));
+
+      const lerp = (a, b, t) =>
+        a + (b - a) * t;
+
+      function easeInOut(t) {
+        return t < 0.5
+          ? 4 * t * t * t
+          : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+
+      /* ================================
+         Canvas 尺寸
+      ================================= */
+
+      function resize() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+        canvas.width = Math.round(W * DPR);
+        canvas.height = Math.round(H * DPR);
+
+        canvas.style.width = W + "px";
+        canvas.style.height = H + "px";
+
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+        initHeart();
+        initFloatingHearts();
+        initStars();
+        initCandles();
+      }
+
+      window.addEventListener("resize", resize);
+
+      window.addEventListener("scroll", () => {
+        scrollY = window.scrollY;
+      }, { passive: true });
+
+      /* ================================
+         通用绘制方法
+      ================================= */
+
+      function drawHeart(x, y, size, color, alpha = 1, rotation = 0) {
+        ctx.save();
+
+        ctx.translate(x, y);
+        ctx.rotate(rotation);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = color;
+
+        ctx.beginPath();
+        ctx.moveTo(0, size * 0.35);
+
+        ctx.bezierCurveTo(
+          -size * 0.9, -size * 0.25,
+          -size * 0.55, -size * 0.85,
+          0, -size * 0.35
+        );
+
+        ctx.bezierCurveTo(
+          size * 0.55, -size * 0.85,
+          size * 0.9, -size * 0.25,
+          0, size * 0.35
+        );
+
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawGlow(x, y, radius, color, alpha) {
+        const gradient = ctx.createRadialGradient(
+          x, y, 0,
+          x, y, radius
+        );
+
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, "rgba(0,0,0,0)");
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = gradient;
+
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      /* ================================
+         心形几何
+      ================================= */
+
+      function heartCurve(t) {
+        const x = 16 * Math.pow(Math.sin(t), 3);
+
+        const y =
+          13 * Math.cos(t) -
+          5 * Math.cos(2 * t) -
+          2 * Math.cos(3 * t) -
+          Math.cos(4 * t);
+
+        return {
+          x,
+          y: -y
+        };
+      }
+
+      function heartPoint(t, fill, depth) {
+        const p = heartCurve(t);
+
+        return {
+          x: p.x * fill,
+          y: p.y * fill,
+          z: depth
+        };
+      }
+
+      /* ================================
+         第一幕：大型立体粒子爱心
+      ================================= */
+
+      function initHeart() {
+        heartParticles = [];
+
+        // 根据屏幕大小控制粒子数量
+        const count = Math.min(
+          2200,
+          Math.max(1100, Math.floor(W * 2))
+        );
+
+        for (let i = 0; i < count; i++) {
+          const t = random(0, Math.PI * 2);
+
+          /*
+            sqrt(random) 让粒子均匀填充心形内部，
+            不只是描绘一条心形轮廓。
+          */
+          const fill = Math.sqrt(Math.random());
+
+          const depth = random(-1, 1);
+          const p = heartPoint(t, fill, depth);
+
+          // 粒子从屏幕四周随机散落
+          const side = Math.floor(random(0, 4));
+
+          let sx;
+          let sy;
+
+          if (side === 0) {
+            sx = random(-W * 0.45, W * 1.45);
+            sy = random(-H * 0.6, -20);
+          } else if (side === 1) {
+            sx = random(-W * 0.55, -20);
+            sy = random(0, H);
+          } else if (side === 2) {
+            sx = random(W + 20, W * 1.55);
+            sy = random(0, H);
+          } else {
+            sx = random(-W * 0.45, W * 1.45);
+            sy = random(H + 20, H * 1.55);
+          }
+
+          heartParticles.push({
+            sx,
+            sy,
+
+            tx: p.x,
+            ty: p.y,
+            tz: p.z,
+
+            size: random(0.8, 2.4),
+            phase: random(0, Math.PI * 2),
+            brightness: random(0.55, 1),
+
+            // 每个粒子有不同的启动时间
+            delay: random(0, 0.24),
+
+            // 固定的运动弧度，避免每帧随机抖动
+            arcX: random(-1, 1),
+            arcY: random(-1, 1),
+
+            color: Math.random() < 0.73
+              ? COLORS.roseLight
+              : COLORS.gold
+          });
+        }
+      }
+
+      function drawFirst(time) {
+        const elapsed = (time - pageStartTime) / 1000;
+
+        // 留出短暂的散落展示时间，再开始汇聚
+        const delay = 0.55;
+        const duration = 4.5;
+
+        const rawProgress = clamp(
+          (elapsed - delay) / duration,
+          0,
+          1
+        );
+
+        const centerX = W / 2;
+
+        /*
+          让爱心在独立展示区域的中间，
+          不与上方数字、下方文字重叠。
+        */
+        const centerY = H * 0.50;
+
+        /*
+          心形几何宽度约为 32 个单位。
+          放大后手机端接近屏幕宽度的 80%，
+          桌面端也有足够的视觉体量。
+        */
+        const scale = Math.min(
+          W * 0.026,
+          H * 0.018,
+          17
+        );
+
+        const breathe =
+          1 + Math.sin(time * 0.00125) * 0.026;
+
+        // 中央大范围柔和玫瑰色光晕
+        drawGlow(
+          centerX,
+          centerY,
+          Math.min(W, H) * 0.40,
+          "rgba(185,135,145,0.20)",
+          0.72 + Math.sin(time * 0.0012) * 0.08
+        );
+
+        // 汇聚时，背景外围也有细微星光
+        drawStars(time, 0.18);
+
+        for (const p of heartParticles) {
+          const localProgress = clamp(
+            (rawProgress - p.delay) / (1 - p.delay),
+            0,
+            1
+          );
+
+          const eased = easeInOut(localProgress);
+
+          // 深度决定粒子的大小、位置与亮度
+          const depth = p.tz;
+
+          const perspective =
+            1 + depth * 0.12;
+
+          const targetX =
+            centerX +
+            p.tx * scale * perspective * breathe;
+
+          const targetY =
+            centerY +
+            p.ty * scale * perspective * breathe;
+
+          /*
+            汇聚轨迹：
+            粒子不是直线出现，而是带有轻微弧线，
+            让画面有向心运动的感觉。
+          */
+          const arc =
+            Math.sin(localProgress * Math.PI);
+
+          const curveX =
+            p.arcX * arc * Math.min(W, H) * 0.055;
+
+          const curveY =
+            p.arcY * arc * Math.min(W, H) * 0.035;
+
+          const x =
+            lerp(p.sx, targetX, eased) + curveX;
+
+          const y =
+            lerp(p.sy, targetY, eased) + curveY;
+
+          // 汇聚完成后的微妙呼吸浮动
+          const floatX =
+            localProgress > 0.98
+              ? Math.sin(time * 0.0009 + p.phase) * 1.0
+              : 0;
+
+          const floatY =
+            localProgress > 0.98
+              ? Math.sin(time * 0.0013 + p.phase) * 1.5
+              : 0;
+
+          const twinkle =
+            0.76 +
+            Math.sin(time * 0.002 + p.phase) * 0.24;
+
+          const depthAlpha =
+            0.52 + (depth + 1) * 0.22;
+
+          const alpha =
+            eased *
+            twinkle *
+            depthAlpha *
+            p.brightness;
+
+          const particleSize =
+            p.size *
+            (0.82 + (depth + 1) * 0.28);
+
+          /*
+            汇聚拖尾：
+            只在运动阶段显示，形成粒子向心流动的感觉。
+          */
+          if (
+            localProgress > 0.02 &&
+            localProgress < 0.96 &&
+            alpha > 0.04
+          ) {
+            const trailLength =
+              (1 - localProgress) * 0.11;
+
+            ctx.save();
+            ctx.globalAlpha = alpha * 0.24;
+            ctx.strokeStyle = p.color;
+            ctx.lineWidth = particleSize * 0.65;
+
+            ctx.beginPath();
+            ctx.moveTo(
+              lerp(x, p.sx, trailLength),
+              lerp(y, p.sy, trailLength)
+            );
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            ctx.restore();
+          }
+
+          // 粒子主体
+          ctx.save();
+
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = p.color;
+          ctx.shadowBlur = 4 + (depth + 1) * 4;
+          ctx.shadowColor = p.color;
+
+          ctx.beginPath();
+          ctx.arc(
+            x + floatX,
+            y + floatY,
+            particleSize,
+            0,
+            Math.PI * 2
+          );
+
+          ctx.fill();
+          ctx.restore();
+        }
+
+        /*
+          汇聚完成后，增加外围香槟金微光。
+          这些微光不改变爱心本身的形状。
+        */
+        if (rawProgress > 0.88) {
+          const appear = clamp(
+            (rawProgress - 0.88) / 0.12,
+            0,
+            1
+          );
+
+          for (let i = 0; i < 20; i++) {
+            const angle =
+              i * Math.PI * 2 / 20 +
+              time * 0.00007;
+
+            const radius = scale * 18.2;
+
+            const x =
+              centerX + Math.cos(angle) * radius;
+
+            const y =
+              centerY + Math.sin(angle) * radius * 0.72;
+
+            const alpha =
+              appear *
+              (0.18 + (Math.sin(time * 0.002 + i) + 1) * 0.16);
+
+            drawGlow(
+              x,
+              y,
+              8,
+              "rgba(215,190,154,0.85)",
+              alpha
+            );
+          }
+        }
+      }
+
+      /* ================================
+         第二幕：心形烟花
+      ================================= */
+
+      function createHeartFirework() {
+        const x = random(W * 0.18, W * 0.82);
+        const y = random(H * 0.27, H * 0.68);
+
+        const size = random(4.5, 7.2);
+        const count = 100;
+
+        const color = Math.random() < 0.72
+          ? COLORS.roseLight
+          : COLORS.gold;
+
+        // 心形轨迹
+        for (let i = 0; i < count; i++) {
+          const t = Math.PI * 2 * i / count;
+          const p = heartCurve(t);
+
+          fireworkParticles.push({
+            x,
+            y,
+
+            vx: p.x * size * 0.115,
+            vy: p.y * size * 0.115,
+
+            life: 1,
+            decay: random(0.006, 0.011),
+
+            size: random(1, 2.1),
+            color,
+            trail: random(3, 8)
+          });
+        }
+
+        // 向外扩散的金色星屑
+        for (let i = 0; i < 38; i++) {
+          const angle = random(0, Math.PI * 2);
+          const speed = random(0.4, 2.0);
+
+          fireworkParticles.push({
+            x,
+            y,
+
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+
+            life: 1,
+            decay: random(0.009, 0.018),
+
+            size: random(0.7, 1.5),
+            color: COLORS.gold,
+            trail: random(2, 5)
+          });
+        }
+      }
+
+      function drawFireworks(time) {
+        if (time - lastFirework > 1050) {
+          createHeartFirework();
+          lastFirework = time;
+        }
+
+        for (
+          let i = fireworkParticles.length - 1;
+          i >= 0;
+          i--
+        ) {
+          const p = fireworkParticles[i];
+
+          p.x += p.vx;
+          p.y += p.vy;
+
+          p.vx *= 0.986;
+          p.vy *= 0.986;
+          p.vy += 0.006;
+
+          p.life -= p.decay;
+
+          if (p.life <= 0) {
+            fireworkParticles.splice(i, 1);
+            continue;
+          }
+
+          ctx.save();
+
+          ctx.globalAlpha = p.life;
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = p.size * 0.8;
+
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = p.color;
+
+          ctx.beginPath();
+          ctx.moveTo(
+            p.x - p.vx * p.trail,
+            p.y - p.vy * p.trail
+          );
+          ctx.lineTo(p.x, p.y);
+          ctx.stroke();
+
+          ctx.restore();
+        }
+
+        drawStars(time, 0.32);
+      }
+
+      /* ================================
+         第三幕：漂浮的小爱心
+      ================================= */
+
+      function initFloatingHearts() {
+        floatingHearts = [];
+
+        const count = Math.min(
+          110,
+          Math.max(55, Math.floor(W / 5))
+        );
+
+        for (let i = 0; i < count; i++) {
+          floatingHearts.push({
+            x: random(0, W),
+            y: random(0, H),
+
+            size: random(3.5, 9),
+            speed: random(0.12, 0.48),
+            drift: random(0.3, 1.2),
+
+            phase: random(0, Math.PI * 2),
+            rotation: random(-0.2, 0.2),
+
+            color: Math.random() < 0.72
+              ? COLORS.roseLight
+              : COLORS.gold,
+
+            alpha: random(0.25, 0.7)
+          });
+        }
+      }
+
+      function drawFloatingHearts(time) {
+        for (const p of floatingHearts) {
+          const floatX =
+            Math.sin(time * 0.0007 + p.phase) *
+            15 * p.drift;
+
+          const floatY =
+            Math.sin(time * 0.0008 + p.phase) * 8;
+
+          p.y -= p.speed;
+
+          if (p.y < -30) {
+            p.y = H + 30;
+            p.x = random(0, W);
+          }
+
+          const alpha =
+            p.alpha *
+            (
+              0.78 +
+              Math.sin(time * 0.0015 + p.phase) * 0.22
+            );
+
+          drawHeart(
+            p.x + floatX,
+            p.y + floatY,
+            p.size,
+            p.color,
+            alpha,
+            p.rotation +
+              Math.sin(time * 0.0005 + p.phase) * 0.08
+          );
+        }
+
+        drawStars(time, 0.45);
+      }
+
+      /* ================================
+         第四幕：烛光与中央心形
+      ================================= */
+
+      function initCandles() {
+        candleParticles = [];
+
+        for (let i = 0; i < 50; i++) {
+          candleParticles.push({
+            x: random(0, W),
+            y: random(0, H),
+
+            speed: random(0.15, 0.5),
+            size: random(0.8, 2.3),
+
+            phase: random(0, Math.PI * 2),
+            alpha: random(0.2, 0.7)
+          });
+        }
+      }
+
+      function drawFinal(time) {
+        const cx = W / 2;
+        const cy = H * 0.49;
+
+        const breathe =
+          1 + Math.sin(time * 0.0015) * 0.04;
+
+        const heartScale = Math.min(
+          W * 0.0055,
+          H * 0.0034
+        );
+
+        drawGlow(
+          cx,
+          cy,
+          Math.min(W, H) * 0.24,
+          "rgba(185,135,145,0.18)",
+          0.65
+        );
+
+        // 中央粒子心形轮廓
+        for (let i = 0; i < 180; i++) {
+          const t = Math.PI * 2 * i / 180;
+          const p = heartPoint(t, 1, 0);
+
+          const x =
+            cx + p.x * heartScale * breathe;
+
+          const y =
+            cy + p.y * heartScale * breathe;
+
+          const alpha =
+            0.45 +
+            Math.sin(time * 0.002 + i * 0.12) * 0.35;
+
+          const size =
+            1.1 + Math.sin(i * 0.2) * 0.5;
+
+          ctx.save();
+
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle =
+            i % 5 === 0
+              ? COLORS.gold
+              : COLORS.roseLight;
+
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = COLORS.roseLight;
+
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        // 环绕的小爱心
+        for (let i = 0; i < 9; i++) {
+          const angle =
+            time * 0.00015 +
+            i * Math.PI * 2 / 9;
+
+          const radius = Math.min(W, H) * 0.18;
+
+          const x = cx + Math.cos(angle) * radius;
+          const y = cy + Math.sin(angle) * radius * 0.68;
+
+          drawHeart(
+            x,
+            y,
+            4 + Math.sin(time * 0.002 + i) * 1.2,
+            i % 3 === 0
+              ? COLORS.gold
+              : COLORS.roseLight,
+            0.5 + Math.sin(time * 0.002 + i) * 0.2,
+            angle * 0.2
+          );
+        }
+
+        // 烛光粒子持续上升
+        if (time - lastCandle > 180) {
+          candleParticles.push({
+            x: random(W * 0.18, W * 0.82),
+            y: H + 10,
+
+            speed: random(0.25, 0.8),
+            size: random(0.8, 2),
+
+            phase: random(0, Math.PI * 2),
+            alpha: random(0.2, 0.65)
+          });
+
+          lastCandle = time;
+        }
+
+        for (
+          let i = candleParticles.length - 1;
+          i >= 0;
+          i--
+        ) {
+          const p = candleParticles[i];
+
+          p.y -= p.speed;
+          p.x += Math.sin(time * 0.001 + p.phase) * 0.25;
+
+          if (p.y < -20) {
+            candleParticles.splice(i, 1);
+            continue;
+          }
+
+          drawGlow(
+            p.x,
+            p.y,
+            p.size * 5,
+            "rgba(215,190,154,0.65)",
+            p.alpha
+          );
+        }
+      }
+
+      /* ================================
+         背景星光
+      ================================= */
+
+      function initStars() {
+        stars = [];
+
+        for (let i = 0; i < 65; i++) {
+          stars.push({
+            x: random(0, W),
+            y: random(0, H),
+
+            size: random(0.4, 1.3),
+            phase: random(0, Math.PI * 2)
+          });
+        }
+      }
+
+      function drawStars(time, intensity = 0.3) {
+        for (const p of stars) {
+          const alpha =
+            intensity *
+            (
+              0.4 +
+              Math.sin(time * 0.001 + p.phase) * 0.35
+            );
+
+          ctx.save();
+
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = COLORS.ivory;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.restore();
+        }
+      }
+
+      /* ================================
+         场景切换
+      ================================= */
+
+      function getScene() {
+        const height = window.innerHeight;
+        const index = Math.floor(scrollY / height);
+
+        return clamp(index, 0, 3);
+      }
+
+      function render(time) {
+        ctx.clearRect(0, 0, W, H);
+
+        activeScene = getScene();
+
+        switch (activeScene) {
+          case 0:
+            drawFirst(time);
+            break;
+
+          case 1:
+            drawFireworks(time);
+            break;
+
+          case 2:
+            drawFloatingHearts(time);
+            break;
+
+          case 3:
+            drawFinal(time);
+            break;
+        }
+
+        requestAnimationFrame(render);
+      }
+
+      /* ================================
+         初始化
+      ================================= */
+
+      resize();
+
+      requestAnimationFrame(render);
+
+    })();
+  </script>
+</body>
+</html>
+

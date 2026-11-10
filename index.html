@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#513e4e">
-<title>DMJ·HappyBirthday</title>
+<title>30 · 正当闪耀</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Noto+Serif+SC:wght@300;400&display=swap" rel="stylesheet">
@@ -136,7 +136,8 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   background:rgba(246,238,229,.08);
   border:1px solid rgba(216,191,157,.4);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  transition:background .4s,transform .3s,opacity .5s;
+  transition:background .4s,transform .3s;
+  animation:invite 2.6s ease-in-out infinite;
 }
 .music:hover{background:rgba(246,238,229,.14)}
 .music:active{transform:scale(.92)}
@@ -152,21 +153,8 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   animation:spin 7s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
-
-.music-hint{
-  position:fixed;right:20px;bottom:86px;z-index:6;
-  padding:8px 16px;border-radius:20px;
-  background:rgba(246,238,229,.12);
-  border:1px solid rgba(216,191,157,.3);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  color:var(--gold);font-size:12px;letter-spacing:.1em;
-  cursor:pointer;
-  opacity:0;pointer-events:none;
-  transition:opacity .6s;
-  animation:pulse 2s ease-in-out infinite;
-}
-.music-hint.show{opacity:1;pointer-events:auto}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(216,191,157,.3)}50%{box-shadow:0 0 0 8px rgba(216,191,157,0)}}
+@keyframes invite{0%,100%{box-shadow:0 0 0 0 rgba(216,191,157,.25)}
+  50%{box-shadow:0 0 0 9px rgba(216,191,157,0)}}
 
 @media (max-width:560px){.dots{display:none}}
 @media (max-height:690px){
@@ -176,7 +164,6 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   .story{gap:14px}.scene-four .story{gap:11px}
   .scroll-hint{bottom:12px}
   .music{right:16px;bottom:16px;width:44px;height:44px}
-  .music-hint{right:16px;bottom:72px;font-size:11px;padding:6px 12px}
 }
 @media (max-width:480px){
   .scene{padding-left:18px;padding-right:18px}
@@ -185,7 +172,7 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .fade-item,.story>*{transition:none}
-  .scroll-hint i,.music.playing .ring{animation:none}
+  .scroll-hint i,.music,.music.playing .ring{animation:none}
 }
 </style>
 </head>
@@ -202,8 +189,6 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   <a data-i="2" aria-label="第三幕"></a>
   <a data-i="3" aria-label="第四幕"></a>
 </nav>
-
-<div class="music-hint" id="musicHint">🎵 点击播放音乐</div>
 
 <button class="music" id="musicBtn" aria-label="背景音乐开关" title="背景音乐">
   <span class="ring"></span>
@@ -226,7 +211,7 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
       </svg>
       <i></i>
     </div>
-    <h1 class="fade-item" data-t="6.6">三十，正当闪耀</h1>
+    <h1 class="fade-item" data-t="6.6">三十，正当其时</h1>
     <p class="lead fade-item" data-t="6.9">岁月赋予你从容，热爱依然让你闪耀。</p>
     <p class="sub fade-item" data-t="7.15">愿你始终热烈，也始终自由。</p>
   </div>
@@ -309,7 +294,6 @@ const dots     = [...document.querySelectorAll(".dots a")];
 const hint     = document.getElementById("scrollHint");
 const stageEl  = document.getElementById("heartStage");
 const musicBtn = document.getElementById("musicBtn");
-const musicHint= document.getElementById("musicHint");
 const bgm      = document.getElementById("bgm");
 
 const rand  = (a,b) => a + Math.random()*(b-a);
@@ -346,7 +330,7 @@ function heartPath(g, scale){
 }
 
 /* ============================================================
-   音乐系统：自动尝试播放，失败则显示提示
+   音乐系统
 ============================================================ */
 const NT = {
   C2:65.41, F2:87.31, G2:98.00,
@@ -508,7 +492,6 @@ bgm.addEventListener("error", () => {
 function tryStartAudio(){
   if(audioStarted) return;
   audioStarted = true;
-  musicHint.classList.remove("show");
   setPlayingUI(true);
   if(useSynth){ beginSynth(); return; }
   bgm.volume = 0.65;
@@ -516,7 +499,6 @@ function tryStartAudio(){
   if(p) p.catch(() => { useSynth = true; beginSynth(); });
 }
 
-/* 页面加载后立即尝试自动播放 */
 window.addEventListener("load", () => {
   setTimeout(() => {
     bgm.volume = 0.65;
@@ -525,12 +507,7 @@ window.addEventListener("load", () => {
       p.then(() => {
         audioStarted = true;
         setPlayingUI(true);
-      }).catch(() => {
-        /* 自动播放失败，显示提示 */
-        musicHint.classList.add("show");
-      });
-    } else {
-      musicHint.classList.add("show");
+      }).catch(() => {});
     }
   }, 500);
 });
@@ -545,8 +522,6 @@ musicBtn.addEventListener("click", () => {
     else { bgm.pause(); setPlayingUI(false); }
   }
 });
-
-musicHint.addEventListener("click", tryStartAudio);
 
 /* ============================================================
    精灵预渲染
@@ -766,7 +741,7 @@ function drawIntro(time, alpha){
 }
 
 /* ============================================================
-   掉落烟花：爱心成型后持续掉落，贯穿多幕
+   掉落烟花：不受场景权重限制，始终显示
 ============================================================ */
 let fallSparks = [], showerDone = false, nextShower = 0;
 let globalTime = 0;
@@ -800,9 +775,7 @@ function spawnShower(big){
   }
 }
 function drawFall(time, sdt){
-  const maxAlpha = Math.max(weights[0], weights[1], weights[2]);
-  if(maxAlpha < 0.002) return;
-  
+  /* 不受权重限制，始终绘制 */
   if(!RM && globalTime > BLOOM_T + 0.15){
     if(!showerDone){
       showerDone = true;
@@ -817,7 +790,6 @@ function drawFall(time, sdt){
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
-  ctx.globalAlpha = maxAlpha;
 
   for(let i=fallSparks.length-1; i>=0; i--){
     const p = fallSparks[i];
@@ -848,7 +820,7 @@ function drawFall(time, sdt){
 }
 
 /* ============================================================
-   烟花：所有场景自动升起，点击也能触发
+   升起烟花：不受场景权重限制，始终显示
 ============================================================ */
 let rockets = [], bursts = [], nextLaunch = 0.3;
 
@@ -887,18 +859,15 @@ function createBurst(x, y){
   }
   bursts.push({x, y, born: globalTime, life: rand(3.2,4.4), parts});
 }
-function drawFireworks(time, alpha, sdt){
-  const maxAlpha = Math.max(weights[1], weights[2], weights[3]);
-  if(maxAlpha < 0.002) return;
-  
-  ctx.save();
-  ctx.globalCompositeOperation = "lighter";
-  ctx.globalAlpha = maxAlpha;
-
+function drawFireworks(time, sdt){
+  /* 不受权重限制，始终绘制 */
   if(!RM && globalTime >= nextLaunch){
     launchRocket(rand(W*0.18, W*0.82), rand(H*0.16, H*0.46));
     nextLaunch = globalTime + rand(1.05,2.0);
   }
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
 
   for(let i=rockets.length-1; i>=0; i--){
     const r = rockets[i];
@@ -1098,9 +1067,8 @@ dots.forEach(d => d.addEventListener("click", e => {
   scenes[+d.dataset.i].scrollIntoView({behavior: RM ? "auto" : "smooth"});
 }));
 
-/* 点击屏幕任意位置触发烟花 */
 window.addEventListener("pointerdown", e => {
-  if(e.target.closest(".music") || e.target.closest(".music-hint")) return;
+  if(e.target.closest(".music")) return;
   tryStartAudio();
   launchRocket(clamp(e.clientX, 40, W-40), clamp(e.clientY, 60, H*0.72));
 });
@@ -1140,7 +1108,7 @@ function animate(now){
   drawMotes(globalTime);
   drawIntro(clocks[0], weights[0]);
   drawFall(globalTime, dt);
-  drawFireworks(globalTime, 1, dt);
+  drawFireworks(globalTime, dt);
   drawFloating(clocks[2], dt*weights[2]*(RM?0.55:1), weights[2]);
   drawFinal(clocks[3], weights[3]);
 

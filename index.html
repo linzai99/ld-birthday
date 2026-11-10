@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#513e4e">
-<title>DMJ-HappyBirthday</title>
+<title>DMJ·HappyBirthday</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Noto+Serif+SC:wght@300;400&display=swap" rel="stylesheet">
@@ -136,8 +136,7 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   background:rgba(246,238,229,.08);
   border:1px solid rgba(216,191,157,.4);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  transition:background .4s,transform .3s;
-  animation:invite 2.6s ease-in-out infinite;
+  transition:background .4s,transform .3s,opacity .5s;
 }
 .music:hover{background:rgba(246,238,229,.14)}
 .music:active{transform:scale(.92)}
@@ -153,8 +152,21 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   animation:spin 7s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes invite{0%,100%{box-shadow:0 0 0 0 rgba(216,191,157,.25)}
-  50%{box-shadow:0 0 0 9px rgba(216,191,157,0)}}
+
+.music-hint{
+  position:fixed;right:20px;bottom:86px;z-index:6;
+  padding:8px 16px;border-radius:20px;
+  background:rgba(246,238,229,.12);
+  border:1px solid rgba(216,191,157,.3);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:var(--gold);font-size:12px;letter-spacing:.1em;
+  cursor:pointer;
+  opacity:0;pointer-events:none;
+  transition:opacity .6s;
+  animation:pulse 2s ease-in-out infinite;
+}
+.music-hint.show{opacity:1;pointer-events:auto}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(216,191,157,.3)}50%{box-shadow:0 0 0 8px rgba(216,191,157,0)}}
 
 @media (max-width:560px){.dots{display:none}}
 @media (max-height:690px){
@@ -164,6 +176,7 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   .story{gap:14px}.scene-four .story{gap:11px}
   .scroll-hint{bottom:12px}
   .music{right:16px;bottom:16px;width:44px;height:44px}
+  .music-hint{right:16px;bottom:72px;font-size:11px;padding:6px 12px}
 }
 @media (max-width:480px){
   .scene{padding-left:18px;padding-right:18px}
@@ -172,13 +185,12 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .fade-item,.story>*{transition:none}
-  .scroll-hint i,.music,.music.playing .ring{animation:none}
+  .scroll-hint i,.music.playing .ring{animation:none}
 }
 </style>
 </head>
 <body>
 
-<!-- 背景音乐：优先读取同目录下的 bgm.mp3，如果没有则自动播放下方的合成八音盒 -->
 <audio id="bgm" src="./bgm.mp3" loop preload="auto"></audio>
 
 <canvas id="canvas"></canvas>
@@ -191,6 +203,8 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   <a data-i="3" aria-label="第四幕"></a>
 </nav>
 
+<div class="music-hint" id="musicHint">🎵 点击播放音乐</div>
+
 <button class="music" id="musicBtn" aria-label="背景音乐开关" title="背景音乐">
   <span class="ring"></span>
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
@@ -200,7 +214,6 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   </svg>
 </button>
 
-<!-- 第一幕 -->
 <section class="scene scene-one" id="scene-0">
   <div class="content">
     <div class="kicker fade-item" data-t="0.3">A NEW CHAPTER BEGINS</div>
@@ -220,7 +233,6 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   <div class="scroll-hint" id="scrollHint"><i></i> SCROLL TO EXPLORE <i></i></div>
 </section>
 
-<!-- 第二幕 -->
 <section class="scene scene-night" id="scene-1">
   <div class="content story">
     <div class="kicker">LIGHT UP THE NIGHT</div>
@@ -233,7 +245,6 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   </div>
 </section>
 
-<!-- 第三幕 -->
 <section class="scene scene-night" id="scene-2">
   <div class="content story">
     <div class="kicker">ALWAYS BE BRIGHT</div>
@@ -246,7 +257,6 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
   </div>
 </section>
 
-<!-- 第四幕 -->
 <section class="scene scene-four" id="scene-3">
   <div class="content story">
     <div class="kicker">HAPPY 30TH BIRTHDAY</div>
@@ -299,6 +309,7 @@ const dots     = [...document.querySelectorAll(".dots a")];
 const hint     = document.getElementById("scrollHint");
 const stageEl  = document.getElementById("heartStage");
 const musicBtn = document.getElementById("musicBtn");
+const musicHint= document.getElementById("musicHint");
 const bgm      = document.getElementById("bgm");
 
 const rand  = (a,b) => a + Math.random()*(b-a);
@@ -335,110 +346,151 @@ function heartPath(g, scale){
 }
 
 /* ============================================================
-   音乐：优先播放真实音乐文件，加载失败自动退回 高级合成八音盒
+   音乐系统：自动尝试播放，失败则显示提示
 ============================================================ */
-const F = {C3:130.81, F3:174.61, G3:196.00, G4:392.00, A4:440.00, B4:493.88, C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99};
-const BEAT = 0.45;
+const NT = {
+  C2:65.41, F2:87.31, G2:98.00,
+  C3:130.81, D3:146.83, F3:174.61, G3:196.00, A3:220.00, B3:246.94,
+  C4:261.63, E4:329.63, F4:349.23, G4:392.00, A4:440.00, B4:493.88,
+  C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99
+};
+const BEAT = 0.52;
+
 const SONG = (() => {
-  const lines = [
-    [["G4",.75],["G4",.25],["A4",1],["G4",1],["C5",1],["B4",2],[null,.6]],
-    [["G4",.75],["G4",.25],["A4",1],["G4",1],["D5",1],["C5",2],[null,.6]],
-    [["G4",.75],["G4",.25],["G5",1],["E5",1],["C5",1],["B4",1],["A4",2],[null,.6]],
-    [["F5",.75],["F5",.25],["E5",1],["C5",1],["D5",1],["C5",2.6],[null,2.4]]
+  const mel = [
+    [["G4",.75],["G4",.25],["A4",1],["G4",1],["C5",1],["B4",2],[null,.5]],
+    [["G4",.75],["G4",.25],["A4",1],["G4",1],["D5",1],["C5",2],[null,.5]],
+    [["G4",.75],["G4",.25],["G5",1],["E5",1],["C5",1],["B4",1],["A4",2],[null,.5]],
+    [["F5",.75],["F5",.25],["E5",1],["C5",1],["D5",1],["C5",2.5],[null,2.5]]
   ];
-  const bass  = ["C3","G3","C3","F3"];
-  const notes = [];
-  let t = 0.3;
-  lines.forEach((line, li) => {
-    notes.push({t, f:F[bass[li]], d:BEAT*2.4, v:0.08, kind:"b"});
-    notes.push({t, f:F[bass[li]]*2, d:BEAT*2.4, v:0.04, kind:"b"});
-    line.forEach(([n, b]) => {
-      if(n) notes.push({t, f:F[n], d:b*BEAT, v:0.25, kind:"m"});
-      t += b*BEAT;
+  const events = [];
+  let t = 0.6;
+  mel.forEach(line => line.forEach(([n,b]) => {
+    if(n) events.push({t, f:NT[n], d:b*BEAT, v:0.20, kind:"m"});
+    t += b*BEAT;
+  }));
+
+  const CH = {
+    C : {b:"C2", arp:["C3","G3","E4"]},
+    G7: {b:"G2", arp:["D3","B3","F4"]},
+    F : {b:"F2", arp:["F3","A3","C4"]}
+  };
+  const prog = [
+    [0,"C",3],[3,"G7",1.5],[4.5,"C",2],
+    [6.5,"C",3],[9.5,"G7",1.5],[11,"C",2],
+    [13,"C",5],[18,"G7",2],
+    [20.5,"F",3],[23.5,"G7",1],[24.5,"C",4]
+  ];
+  prog.forEach(([bt,name,dur]) => {
+    const tt = 0.6 + bt*BEAT;
+    const ch = CH[name];
+    events.push({t:tt, f:NT[ch.b], d:dur*BEAT, v:0.10, kind:"b"});
+    events.push({t:tt, f:NT[ch.b]*2, d:dur*BEAT, v:0.045, kind:"b"});
+    ch.arp.forEach((nn,i) => {
+      events.push({t:tt + 0.06 + i*0.05, f:NT[nn],
+        d:Math.max(dur*BEAT*0.85, 1.4), v:0.055, kind:"c"});
     });
   });
-  notes.sort((a,b) => a.t - b.t);
-  return notes;
+  events.sort((a,b) => a.t - b.t);
+  return events;
 })();
-const LOOP = SONG[SONG.length-1].t + 1.4;
+const LOOP = SONG[SONG.length-1].t + 3.2;
 
 const A = {ctx:null, bus:null, on:false, ready:false, t0:0, i:0};
 let audioStarted = false, useSynth = false;
 
-function makeReverb(ctx) {
-  const rate = ctx.sampleRate;
-  const length = rate * 3.5;
-  const impulse = ctx.createBuffer(2, length, rate);
-  const left = impulse.getChannelData(0);
-  const right = impulse.getChannelData(1);
-  for (let i = 0; i < length; i++) {
-    const factor = Math.pow(1 - i / length, 3.5);
-    left[i] = (Math.random() * 2 - 1) * factor;
-    right[i] = (Math.random() * 2 - 1) * factor;
+function makeWarmReverb(c){
+  const rate = c.sampleRate, len = Math.floor(rate*3.2);
+  const buf = c.createBuffer(2, len, rate);
+  for(let ch=0; ch<2; ch++){
+    const d = buf.getChannelData(ch);
+    let last = 0;
+    for(let i=0;i<len;i++){
+      const k = Math.pow(1 - i/len, 4.2);
+      last = last*0.62 + (Math.random()*2-1)*0.38;
+      d[i] = last * k;
+    }
   }
-  const convolver = ctx.createConvolver();
-  convolver.buffer = impulse;
-  return convolver;
+  const conv = c.createConvolver();
+  conv.buffer = buf;
+  return conv;
 }
 
 function initSynth(){
   const c = new (window.AudioContext || window.webkitAudioContext)();
   A.ctx = c;
-  const master = c.createGain(); master.gain.value = 0.8;
-  const bus = c.createGain(); bus.gain.value = 1.0;
-  
-  const reverb = makeReverb(c);
-  const reverbGain = c.createGain(); reverbGain.gain.value = 0.4; 
-  
-  bus.connect(master); 
-  bus.connect(reverb); 
-  reverb.connect(reverbGain);
-  reverbGain.connect(master); 
-  
-  master.connect(c.destination);
+  const master = c.createGain(); master.gain.value = 0.9;
+  const comp = c.createDynamicsCompressor();
+  comp.threshold.value = -18; comp.knee.value = 24; comp.ratio.value = 5;
+  comp.attack.value = 0.004; comp.release.value = 0.25;
+  master.connect(comp); comp.connect(c.destination);
+
+  const bus = c.createGain(); bus.gain.value = 1;
+  bus.connect(master);
+
+  const reverb = makeWarmReverb(c);
+  const damp = c.createBiquadFilter();
+  damp.type = "lowpass"; damp.frequency.value = 2600;
+  const wet = c.createGain(); wet.gain.value = 0.42;
+  bus.connect(reverb); reverb.connect(damp); damp.connect(wet); wet.connect(master);
+
   A.bus = bus; A.ready = true;
 }
 
-function playNote(f, t, d, v, kind){
+function pianoNote(f, t, d, v, kind){
   const c = A.ctx;
-  const o1 = c.createOscillator(), g1 = c.createGain();
-  o1.type = "sine"; o1.frequency.value = f;
-  
-  const o2 = c.createOscillator(), g2 = c.createGain();
-  o2.type = "sine"; o2.frequency.value = f * 2; 
-  
-  const o3 = c.createOscillator(), g3 = c.createGain();
-  o3.type = "triangle"; o3.frequency.value = f * 3; 
+  const vel = v * (kind === "m" ? rand(0.9,1.08) : rand(0.85,1.05));
+  if(kind === "m") t += rand(-0.008, 0.008);
 
-  g1.gain.setValueAtTime(0.001, t);
-  g1.gain.exponentialRampToValueAtTime(v, t + 0.005); 
-  g1.gain.exponentialRampToValueAtTime(v * 0.3, t + 0.1); 
-  g1.gain.exponentialRampToValueAtTime(0.001, t + d * 2.5); 
+  const env = c.createGain();
+  const filter = c.createBiquadFilter();
+  filter.type = "lowpass"; filter.Q.value = 0.5;
+  const top = kind === "b" ? Math.min(f*5,1400) : Math.min(f*8,3600);
+  const floor = Math.max(f*2, kind === "b" ? 260 : 480);
+  filter.frequency.setValueAtTime(top, t);
+  filter.frequency.exponentialRampToValueAtTime(floor, t + (kind === "m" ? 1.15 : 1.6));
 
-  g2.gain.setValueAtTime(0.001, t);
-  g2.gain.exponentialRampToValueAtTime(v * 0.2, t + 0.005);
-  g2.gain.exponentialRampToValueAtTime(0.001, t + d * 1.5);
+  let tail = env;
+  if(c.createStereoPanner){
+    const pan = c.createStereoPanner();
+    pan.pan.value = clamp((240-f)/300, -0.45, 0.45)*0.55 + rand(-0.06,0.06);
+    env.connect(pan); tail = pan;
+  }
+  filter.connect(env);
+  tail.connect(A.bus);
 
-  g3.gain.setValueAtTime(0.001, t);
-  g3.gain.exponentialRampToValueAtTime(v * 0.05, t + 0.002); 
-  g3.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+  const T = kind === "m" ? Math.max(d*2.6, 2.4) : Math.max(d*2.2, 2.0);
+  env.gain.setValueAtTime(0.0001, t);
+  env.gain.exponentialRampToValueAtTime(vel, t + 0.006);
+  env.gain.exponentialRampToValueAtTime(vel*0.5, t + 0.13);
+  env.gain.exponentialRampToValueAtTime(vel*0.16, t + Math.max(d*1.15, 0.7));
+  env.gain.exponentialRampToValueAtTime(0.0004, t + T);
 
-  o1.connect(g1); g1.connect(A.bus);
-  o2.connect(g2); g2.connect(A.bus);
-  o3.connect(g3); g3.connect(A.bus);
+  const parts = kind === "b"
+    ? [{r:1,g:1,tp:"sine",det:0},{r:2,g:0.22,tp:"sine",det:2},
+       {r:1,g:0.3,tp:"triangle",det:-4}]
+    : [{r:1,g:1,tp:"sine",det:0},{r:2,g:0.34,tp:"sine",det:1.6},
+       {r:3,g:0.13,tp:"sine",det:-2},{r:4,g:0.05,tp:"sine",det:3},
+       {r:1,g:0.24,tp:"triangle",det:-3.5}];
 
-  o1.start(t); o1.stop(t + d * 3);
-  o2.start(t); o2.stop(t + d * 3);
-  o3.start(t); o3.stop(t + 1);
+  parts.forEach(p => {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = p.tp;
+    o.frequency.value = f * p.r;
+    o.detune.value = p.det;
+    g.gain.value = p.g;
+    o.connect(g); g.connect(filter);
+    o.start(t); o.stop(t + T + 0.1);
+  });
 }
 
 function tickMusic(){
   if(!A.ready || !A.on || A.ctx.state !== "running") return;
-  const ahead = A.ctx.currentTime + 0.9;
+  const ahead = A.ctx.currentTime + 1.0;
   let guard = 0;
-  while(A.t0 + SONG[A.i].t < ahead && guard++ < 64){
+  while(A.t0 + SONG[A.i].t < ahead && guard++ < 80){
     const n = SONG[A.i];
-    playNote(n.f, A.t0 + n.t, n.d, n.v, n.kind);
+    pianoNote(n.f, A.t0 + n.t, n.d, n.v, n.kind);
     if(++A.i >= SONG.length){ A.t0 += LOOP; A.i = 0; }
   }
 }
@@ -456,12 +508,33 @@ bgm.addEventListener("error", () => {
 function tryStartAudio(){
   if(audioStarted) return;
   audioStarted = true;
+  musicHint.classList.remove("show");
   setPlayingUI(true);
   if(useSynth){ beginSynth(); return; }
   bgm.volume = 0.65;
   const p = bgm.play();
   if(p) p.catch(() => { useSynth = true; beginSynth(); });
 }
+
+/* 页面加载后立即尝试自动播放 */
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    bgm.volume = 0.65;
+    const p = bgm.play();
+    if(p){
+      p.then(() => {
+        audioStarted = true;
+        setPlayingUI(true);
+      }).catch(() => {
+        /* 自动播放失败，显示提示 */
+        musicHint.classList.add("show");
+      });
+    } else {
+      musicHint.classList.add("show");
+    }
+  }, 500);
+});
+
 musicBtn.addEventListener("click", () => {
   if(!audioStarted){ tryStartAudio(); return; }
   if(useSynth){
@@ -472,6 +545,8 @@ musicBtn.addEventListener("click", () => {
     else { bgm.pause(); setPlayingUI(false); }
   }
 });
+
+musicHint.addEventListener("click", tryStartAudio);
 
 /* ============================================================
    精灵预渲染
@@ -690,17 +765,21 @@ function drawIntro(time, alpha){
   ctx.restore();
 }
 
+/* ============================================================
+   掉落烟花：爱心成型后持续掉落，贯穿多幕
+============================================================ */
 let fallSparks = [], showerDone = false, nextShower = 0;
+let globalTime = 0;
 
 function spawnShower(big){
   const clusters = big ? 3 : (Math.random() < 0.55 ? 1 : 2);
   for(let c=0; c<clusters; c++){
     const cx = rand(W*0.1, W*0.9);
     const spread = rand(40, 170);
-    const n = Math.round(big ? rand(35,60) : rand(16,34));
+    const n = Math.round(big ? rand(25,45) : rand(12,24));
     const y0 = rand(-30, H*0.1);
     for(let i=0; i<n; i++){
-      if(fallSparks.length > 420) fallSparks.shift();
+      if(fallSparks.length > 300) fallSparks.shift();
       const cr = Math.random();
       fallSparks.push({
         x: cx + (Math.random()+Math.random()-1)*spread,
@@ -720,23 +799,25 @@ function spawnShower(big){
     }
   }
 }
-function drawFall(time, sdt, alpha){
-  if(alpha < 0.002) return;
-  if(!RM && time > BLOOM_T + 0.15){
+function drawFall(time, sdt){
+  const maxAlpha = Math.max(weights[0], weights[1], weights[2]);
+  if(maxAlpha < 0.002) return;
+  
+  if(!RM && globalTime > BLOOM_T + 0.15){
     if(!showerDone){
       showerDone = true;
       spawnShower(true);
-      nextShower = time + rand(1.4,2.2);
-    } else if(time >= nextShower){
+      nextShower = globalTime + rand(1.4,2.2);
+    } else if(globalTime >= nextShower){
       spawnShower(false);
-      nextShower = time + rand(1.6,3.0);
+      nextShower = globalTime + rand(1.6,3.0);
     }
   }
   if(!fallSparks.length) return;
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
-  ctx.globalAlpha = alpha;
+  ctx.globalAlpha = maxAlpha;
 
   for(let i=fallSparks.length-1; i>=0; i--){
     const p = fallSparks[i];
@@ -746,11 +827,11 @@ function drawFall(time, sdt, alpha){
       continue;
     }
     p.vy = Math.min(p.vy + p.g*sdt, 130);
-    p.x += (p.vx + Math.sin(time*p.sw + p.ph)*p.swA)*sdt;
+    p.x += (p.vx + Math.sin(globalTime*p.sw + p.ph)*p.swA)*sdt;
     p.y += p.vy*sdt;
 
     const fade = 1 - Math.pow(p.age/p.life, 2);
-    const a = fade*(.55 + .45*Math.sin(time*6 + p.tw));
+    const a = fade*(.55 + .45*Math.sin(globalTime*6 + p.tw));
     if(a <= .02) continue;
 
     ctx.strokeStyle = rgba(p.color, a*.45);
@@ -766,14 +847,17 @@ function drawFall(time, sdt, alpha){
   ctx.restore();
 }
 
+/* ============================================================
+   烟花：所有场景自动升起，点击也能触发
+============================================================ */
 let rockets = [], bursts = [], nextLaunch = 0.3;
 
 function launchRocket(tx, ty){
-  if(rockets.length > 5) return;
+  if(rockets.length > 6) return;
   rockets.push({
     x0: clamp(tx + rand(-40,40), 20, W-20),
     y0: H + 12, tx, ty,
-    b0: clocks[1], dur: rand(0.85,1.15),
+    b0: globalTime, dur: rand(0.85,1.15),
     phase: rand(0,TAU),
     color: [COLORS.gold, COLORS.ivory, COLORS.rose][Math.random()*3|0]
   });
@@ -801,22 +885,24 @@ function createBurst(x, y){
       tw: rand(0,TAU)
     });
   }
-  bursts.push({x, y, born: clocks[1], life: rand(3.2,4.4), parts});
+  bursts.push({x, y, born: globalTime, life: rand(3.2,4.4), parts});
 }
-function drawFireworks(time, alpha){
-  if(alpha < 0.002) return;
+function drawFireworks(time, alpha, sdt){
+  const maxAlpha = Math.max(weights[1], weights[2], weights[3]);
+  if(maxAlpha < 0.002) return;
+  
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
-  ctx.globalAlpha = alpha;
+  ctx.globalAlpha = maxAlpha;
 
-  if(!RM && time >= nextLaunch){
+  if(!RM && globalTime >= nextLaunch){
     launchRocket(rand(W*0.18, W*0.82), rand(H*0.16, H*0.46));
-    nextLaunch = time + rand(1.05,2.0);
+    nextLaunch = globalTime + rand(1.05,2.0);
   }
 
   for(let i=rockets.length-1; i>=0; i--){
     const r = rockets[i];
-    const t = (time - r.b0)/r.dur;
+    const t = (globalTime - r.b0)/r.dur;
     if(t >= 1){
       createBurst(r.tx, r.ty);
       rockets.splice(i,1);
@@ -846,7 +932,7 @@ function drawFireworks(time, alpha){
 
   for(let i=bursts.length-1; i>=0; i--){
     const b = bursts[i];
-    const age = time - b.born;
+    const age = globalTime - b.born;
     if(age > b.life){ bursts.splice(i,1); continue; }
 
     if(age < .3){
@@ -860,7 +946,7 @@ function drawFireworks(time, alpha){
       const x = b.x + p.ox*e + p.vx*age;
       const y = b.y + p.oy*e + p.vy*age + age*age*2.2;
       const fade = 1 - smooth(clamp((age - b.life*.55)/(b.life*.45), 0, 1));
-      const tw = .65 + .35*Math.sin(time*5 + p.tw);
+      const tw = .65 + .35*Math.sin(globalTime*5 + p.tw);
       const a = fade*local*tw;
       if(a <= .02) continue;
 
@@ -1012,12 +1098,11 @@ dots.forEach(d => d.addEventListener("click", e => {
   scenes[+d.dataset.i].scrollIntoView({behavior: RM ? "auto" : "smooth"});
 }));
 
+/* 点击屏幕任意位置触发烟花 */
 window.addEventListener("pointerdown", e => {
-  if(e.target.closest(".music")) return;
+  if(e.target.closest(".music") || e.target.closest(".music-hint")) return;
   tryStartAudio();
-  if(weights[1] > 0.45){
-    launchRocket(clamp(e.clientX, 40, W-40), clamp(e.clientY, 60, H*0.72));
-  }
+  launchRocket(clamp(e.clientX, 40, W-40), clamp(e.clientY, 60, H*0.72));
 });
 
 function resize(){
@@ -1036,6 +1121,7 @@ function animate(now){
   if(!lastFrame) lastFrame = now;
   const dt = Math.min((now - lastFrame)/1000, .04);
   lastFrame = now;
+  globalTime += dt;
 
   for(let i=0;i<4;i++) clocks[i] += dt*weights[i];
 
@@ -1051,10 +1137,10 @@ function animate(now){
   if(useSynth) tickMusic();
 
   ctx.clearRect(0,0,W,H);
-  drawMotes(clocks[0] + clocks[3]);
+  drawMotes(globalTime);
   drawIntro(clocks[0], weights[0]);
-  drawFall(clocks[0], dt*weights[0], weights[0]);
-  drawFireworks(clocks[1], weights[1]);
+  drawFall(globalTime, dt);
+  drawFireworks(globalTime, 1, dt);
   drawFloating(clocks[2], dt*weights[2]*(RM?0.55:1), weights[2]);
   drawFinal(clocks[3], weights[3]);
 

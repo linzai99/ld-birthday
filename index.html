@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#513e4e">
-<title>30 · 正当闪耀</title>
+<title>DMJ·HappyBirthday</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Noto+Serif+SC:wght@300;400&display=swap" rel="stylesheet">
@@ -211,7 +211,7 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
       </svg>
       <i></i>
     </div>
-    <h1 class="fade-item" data-t="6.6">三十，正当其时</h1>
+    <h1 class="fade-item" data-t="6.6">三十，正当闪耀</h1>
     <p class="lead fade-item" data-t="6.9">岁月赋予你从容，热爱依然让你闪耀。</p>
     <p class="sub fade-item" data-t="7.15">愿你始终热烈，也始终自由。</p>
   </div>
@@ -283,7 +283,7 @@ const COLORS = {
 };
 const TAU = Math.PI * 2;
 
-let W=0, H=0, DPR=1, lastFrame=0, scrollY=0;
+let W=0, H=0, DPR=1, lastFrame=0, scrollY=0, globalTime=0;
 
 const clocks  = [0,0,0,0];
 const weights = [1,0,0,0];
@@ -329,9 +329,7 @@ function heartPath(g, scale){
   g.closePath();
 }
 
-/* ============================================================
-   音乐系统
-============================================================ */
+/* 音乐系统 */
 const NT = {
   C2:65.41, F2:87.31, G2:98.00,
   C3:130.81, D3:146.83, F3:174.61, G3:196.00, A3:220.00, B3:246.94,
@@ -523,9 +521,7 @@ musicBtn.addEventListener("click", () => {
   }
 });
 
-/* ============================================================
-   精灵预渲染
-============================================================ */
+/* 精灵预渲染 */
 function makeHeartSprite(color){
   const s = 72, c = document.createElement("canvas");
   c.width = c.height = s;
@@ -573,14 +569,13 @@ function buildMotes(){
   }));
 }
 function drawMotes(time){
-  const a = Math.max(...weights);
-  if(a < .002) return;
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = 1;
   for(const p of motes){
     const yy = RM ? p.y : ((p.y - time*p.sp) % 1 + 1) % 1;
     const x = p.x*W + Math.sin(time*.25 + p.ph)*12;
-    const al = (.08 + .07*Math.sin(time*.8 + p.ph)) * a;
+    const al = .08 + .07*Math.sin(time*.8 + p.ph);
     ctx.fillStyle = rgba(p.gold ? COLORS.gold : COLORS.ivory, al);
     ctx.beginPath(); ctx.arc(x, yy*H, p.size, 0, TAU); ctx.fill();
   }
@@ -603,6 +598,7 @@ function sampleHeart3D(){
 const bloomRing = Array.from({length:26}, (_,i) => ({
   a: i/26*TAU, sp: rand(0.8,1.25), sz: rand(5,9)
 }));
+const BLOOM_T = 5.6*(RM?0.5:1);
 
 let intro = [];
 function buildIntro(){
@@ -649,7 +645,6 @@ function bezier(sx, sy, cxp, cyp, tx, ty, e){
     y: ie*ie*sy + 2*ie*e*cyp + e*e*ty
   };
 }
-const BLOOM_T = 5.6*(RM?0.5:1);
 
 function drawIntro(time, alpha){
   if(alpha < 0.002 || !intro.length) return;
@@ -669,15 +664,16 @@ function drawIntro(time, alpha){
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = alpha;
 
   const gp = clamp((time - 4.2)/1.4, 0, 1);
   if(gp > 0) glow(cx, cy, rect.width*0.55, COLORS.rose,
-    gp*(0.05 + 0.018*Math.sin(time*1.05))*alpha);
+    gp*(0.05 + 0.018*Math.sin(time*1.05)));
 
   const bt = time - BLOOM_T;
   if(bt > 0 && bt < 1.5){
     const pr = easeOut(bt/1.5);
-    glow(cx, cy, S*(0.7 + 1.2*pr), COLORS.ivory, (1-pr)*0.14*alpha);
+    glow(cx, cy, S*(0.7 + 1.2*pr), COLORS.ivory, (1-pr)*0.14);
   }
 
   for(const p of intro){
@@ -740,11 +736,8 @@ function drawIntro(time, alpha){
   ctx.restore();
 }
 
-/* ============================================================
-   掉落烟花：不受场景权重限制，始终显示
-============================================================ */
+/* 掉落烟花 - 修复版本 */
 let fallSparks = [], showerDone = false, nextShower = 0;
-let globalTime = 0;
 
 function spawnShower(big){
   const clusters = big ? 3 : (Math.random() < 0.55 ? 1 : 2);
@@ -774,8 +767,9 @@ function spawnShower(big){
     }
   }
 }
-function drawFall(time, sdt){
-  /* 不受权重限制，始终绘制 */
+
+function drawFall(dt){
+  /* 生成掉落烟花 */
   if(!RM && globalTime > BLOOM_T + 0.15){
     if(!showerDone){
       showerDone = true;
@@ -786,21 +780,23 @@ function drawFall(time, sdt){
       nextShower = globalTime + rand(1.6,3.0);
     }
   }
+  
   if(!fallSparks.length) return;
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = 1;
 
   for(let i=fallSparks.length-1; i>=0; i--){
     const p = fallSparks[i];
-    p.age += sdt;
+    p.age += dt;
     if(p.age > p.life || p.y > H + 24){
       fallSparks.splice(i,1);
       continue;
     }
-    p.vy = Math.min(p.vy + p.g*sdt, 130);
-    p.x += (p.vx + Math.sin(globalTime*p.sw + p.ph)*p.swA)*sdt;
-    p.y += p.vy*sdt;
+    p.vy = Math.min(p.vy + p.g*dt, 130);
+    p.x += (p.vx + Math.sin(globalTime*p.sw + p.ph)*p.swA)*dt;
+    p.y += p.vy*dt;
 
     const fade = 1 - Math.pow(p.age/p.life, 2);
     const a = fade*(.55 + .45*Math.sin(globalTime*6 + p.tw));
@@ -819,9 +815,7 @@ function drawFall(time, sdt){
   ctx.restore();
 }
 
-/* ============================================================
-   升起烟花：不受场景权重限制，始终显示
-============================================================ */
+/* 升起烟花 - 修复版本 */
 let rockets = [], bursts = [], nextLaunch = 0.3;
 
 function launchRocket(tx, ty){
@@ -834,6 +828,7 @@ function launchRocket(tx, ty){
     color: [COLORS.gold, COLORS.ivory, COLORS.rose][Math.random()*3|0]
   });
 }
+
 function createBurst(x, y){
   const k = clamp(Math.min(W,H)/760, 0.62, 1.15);
   const isHeart = Math.random() < 0.72;
@@ -859,16 +854,21 @@ function createBurst(x, y){
   }
   bursts.push({x, y, born: globalTime, life: rand(3.2,4.4), parts});
 }
-function drawFireworks(time, sdt){
-  /* 不受权重限制，始终绘制 */
+
+function drawFireworks(dt){
+  /* 自动发射 */
   if(!RM && globalTime >= nextLaunch){
     launchRocket(rand(W*0.18, W*0.82), rand(H*0.16, H*0.46));
     nextLaunch = globalTime + rand(1.05,2.0);
   }
 
+  if(!rockets.length && !bursts.length) return;
+
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = 1;
 
+  /* 绘制火箭 */
   for(let i=rockets.length-1; i>=0; i--){
     const r = rockets[i];
     const t = (globalTime - r.b0)/r.dur;
@@ -899,6 +899,7 @@ function drawFireworks(time, sdt){
     }
   }
 
+  /* 绘制绽放 */
   for(let i=bursts.length-1; i>=0; i--){
     const b = bursts[i];
     const age = globalTime - b.born;
@@ -954,6 +955,7 @@ function drawFloating(time, sdt, alpha){
   if(alpha < 0.002) return;
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = alpha;
 
   const s = Math.min(W,H)*0.3*(1 + Math.sin(time*.8)*.015);
   ctx.save();
@@ -964,7 +966,6 @@ function drawFloating(time, sdt, alpha){
   ctx.stroke();
   ctx.restore();
 
-  ctx.globalAlpha = alpha;
   for(const p of floating){
     p.y -= p.speed*sdt;
     if(p.y < -35){ p.y = H + 30; p.x = rand(W*.08, W*.92); }
@@ -1107,8 +1108,8 @@ function animate(now){
   ctx.clearRect(0,0,W,H);
   drawMotes(globalTime);
   drawIntro(clocks[0], weights[0]);
-  drawFall(globalTime, dt);
-  drawFireworks(globalTime, dt);
+  drawFall(dt);
+  drawFireworks(dt);
   drawFloating(clocks[2], dt*weights[2]*(RM?0.55:1), weights[2]);
   drawFinal(clocks[3], weights[3]);
 

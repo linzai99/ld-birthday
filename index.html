@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#513e4e">
-<title>DMJ·HappyBirthday</title>
+<title>30 · 正当闪耀</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Noto+Serif+SC:wght@300;400&display=swap" rel="stylesheet">
@@ -211,7 +211,7 @@ h2{font-size:clamp(23px,3.8vw,33px);letter-spacing:.14em;line-height:1.6}
       </svg>
       <i></i>
     </div>
-    <h1 class="fade-item" data-t="6.6">三十，正当闪耀</h1>
+    <h1 class="fade-item" data-t="6.6">三十，正当其时</h1>
     <p class="lead fade-item" data-t="6.9">岁月赋予你从容，热爱依然让你闪耀。</p>
     <p class="sub fade-item" data-t="7.15">愿你始终热烈，也始终自由。</p>
   </div>
@@ -283,7 +283,7 @@ const COLORS = {
 };
 const TAU = Math.PI * 2;
 
-let W=0, H=0, DPR=1, lastFrame=0, scrollY=0, globalTime=0;
+let W=0, H=0, DPR=1, lastFrame=0, scrollY=0;
 
 const clocks  = [0,0,0,0];
 const weights = [1,0,0,0];
@@ -736,205 +736,190 @@ function drawIntro(time, alpha){
   ctx.restore();
 }
 
-/* 掉落烟花 - 修复版本 */
-let fallSparks = [], showerDone = false, nextShower = 0;
+/* ========== 独立烟花系统 - 用 setInterval 定时触发 ========== */
+let fallSparks = [];
+let rockets = [];
+let bursts = [];
 
-function spawnShower(big){
-  const clusters = big ? 3 : (Math.random() < 0.55 ? 1 : 2);
-  for(let c=0; c<clusters; c++){
-    const cx = rand(W*0.1, W*0.9);
-    const spread = rand(40, 170);
-    const n = Math.round(big ? rand(25,45) : rand(12,24));
-    const y0 = rand(-30, H*0.1);
-    for(let i=0; i<n; i++){
-      if(fallSparks.length > 300) fallSparks.shift();
-      const cr = Math.random();
-      fallSparks.push({
-        x: cx + (Math.random()+Math.random()-1)*spread,
-        y: y0 + rand(-24,24),
-        vx: rand(-9,9),
-        vy: rand(6,42),
-        g: rand(46,110),
-        sw: rand(0.5,1.5), swA: rand(3,12), ph: rand(0,TAU),
-        size: rand(.7,2.1),
-        life: rand(3.2,6.2), age:0,
-        tw: rand(0,TAU),
-        color: cr<.45 ? COLORS.gold
-             : cr<.70 ? COLORS.ivory
-             : cr<.88 ? COLORS.rose
-             : COLORS.pink
-      });
-    }
+/* 掉落烟花 - 每 2 秒生成一次 */
+function spawnFallSparks(){
+  const cx = rand(W*0.15, W*0.85);
+  const n = rand(15, 30);
+  for(let i=0; i<n; i++){
+    fallSparks.push({
+      x: cx + rand(-80, 80),
+      y: rand(-20, 30),
+      vx: rand(-5, 5),
+      vy: rand(20, 60),
+      size: rand(1.5, 3),
+      life: rand(3, 5),
+      age: 0,
+      color: Math.random() < 0.5 ? COLORS.gold : COLORS.ivory
+    });
   }
 }
 
-function drawFall(dt){
-  /* 生成掉落烟花 */
-  if(!RM && globalTime > BLOOM_T + 0.15){
-    if(!showerDone){
-      showerDone = true;
-      spawnShower(true);
-      nextShower = globalTime + rand(1.4,2.2);
-    } else if(globalTime >= nextShower){
-      spawnShower(false);
-      nextShower = globalTime + rand(1.6,3.0);
-    }
-  }
-  
-  if(!fallSparks.length) return;
-
-  ctx.save();
-  ctx.globalCompositeOperation = "lighter";
-  ctx.globalAlpha = 1;
-
-  for(let i=fallSparks.length-1; i>=0; i--){
-    const p = fallSparks[i];
-    p.age += dt;
-    if(p.age > p.life || p.y > H + 24){
-      fallSparks.splice(i,1);
-      continue;
-    }
-    p.vy = Math.min(p.vy + p.g*dt, 130);
-    p.x += (p.vx + Math.sin(globalTime*p.sw + p.ph)*p.swA)*dt;
-    p.y += p.vy*dt;
-
-    const fade = 1 - Math.pow(p.age/p.life, 2);
-    const a = fade*(.55 + .45*Math.sin(globalTime*6 + p.tw));
-    if(a <= .02) continue;
-
-    ctx.strokeStyle = rgba(p.color, a*.45);
-    ctx.lineWidth = .8;
-    ctx.beginPath();
-    ctx.moveTo(p.x - p.vx*.04, p.y - p.vy*.06);
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
-
-    ctx.fillStyle = rgba(p.color, a);
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, TAU); ctx.fill();
-  }
-  ctx.restore();
-}
-
-/* 升起烟花 - 修复版本 */
-let rockets = [], bursts = [], nextLaunch = 0.3;
-
-function launchRocket(tx, ty){
-  if(rockets.length > 6) return;
+/* 升起烟花 - 每 1.5 秒发射一次 */
+function launchAutoRocket(){
+  const tx = rand(W*0.2, W*0.8);
+  const ty = rand(H*0.15, H*0.4);
   rockets.push({
-    x0: clamp(tx + rand(-40,40), 20, W-20),
-    y0: H + 12, tx, ty,
-    b0: globalTime, dur: rand(0.85,1.15),
-    phase: rand(0,TAU),
-    color: [COLORS.gold, COLORS.ivory, COLORS.rose][Math.random()*3|0]
+    x: tx,
+    y: H + 10,
+    tx: tx,
+    ty: ty,
+    vy: -rand(300, 400),
+    exploded: false
   });
 }
 
+/* 创建爆炸 */
 function createBurst(x, y){
-  const k = clamp(Math.min(W,H)/760, 0.62, 1.15);
-  const isHeart = Math.random() < 0.72;
-  const main = [COLORS.gold, COLORS.rose, COLORS.deep][Math.random()*3|0];
-  const parts = [], n = isHeart ? 120 : 90;
-  for(let i=0;i<n;i++){
-    let ox, oy;
-    if(isHeart){
-      const p = heartPoint(i/n*TAU, rand(58,92)*k);
-      ox = p.x; oy = p.y;
-    } else {
-      const a = Math.random()*TAU, r = rand(30,105)*k;
-      ox = Math.cos(a)*r; oy = Math.sin(a)*r*0.92;
-    }
-    const cr = Math.random();
+  const n = 80;
+  const parts = [];
+  for(let i=0; i<n; i++){
+    const angle = (i / n) * TAU;
+    const speed = rand(50, 150);
     parts.push({
-      ox, oy, delay: rand(0,.18),
-      size: rand(.7,1.6),
-      color: cr<.3 ? COLORS.ivory : cr<.55 ? COLORS.gold : main,
-      vx: rand(-3,3), vy: rand(-2,2),
-      tw: rand(0,TAU)
+      x: x,
+      y: y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: rand(1.5, 3),
+      life: rand(1.5, 2.5),
+      age: 0,
+      color: [COLORS.gold, COLORS.ivory, COLORS.rose][Math.floor(Math.random()*3)]
     });
   }
-  bursts.push({x, y, born: globalTime, life: rand(3.2,4.4), parts});
+  bursts.push({parts});
 }
 
-function drawFireworks(dt){
-  /* 自动发射 */
-  if(!RM && globalTime >= nextLaunch){
-    launchRocket(rand(W*0.18, W*0.82), rand(H*0.16, H*0.46));
-    nextLaunch = globalTime + rand(1.05,2.0);
-  }
-
-  if(!rockets.length && !bursts.length) return;
-
+/* 绘制掉落烟花 */
+function drawFallSparks(dt){
+  if(!fallSparks.length) return;
+  
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
-  ctx.globalAlpha = 1;
+  
+  for(let i=fallSparks.length-1; i>=0; i--){
+    const p = fallSparks[i];
+    p.age += dt;
+    if(p.age > p.life){
+      fallSparks.splice(i, 1);
+      continue;
+    }
+    
+    p.vy += 100 * dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    
+    const alpha = 1 - p.age / p.life;
+    ctx.fillStyle = rgba(p.color, alpha);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, TAU);
+    ctx.fill();
+  }
+  
+  ctx.restore();
+}
 
+/* 绘制升起烟花 */
+function drawRockets(dt){
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  
   /* 绘制火箭 */
   for(let i=rockets.length-1; i>=0; i--){
     const r = rockets[i];
-    const t = (globalTime - r.b0)/r.dur;
-    if(t >= 1){
+    r.y += r.vy * dt;
+    
+    if(r.y <= r.ty && !r.exploded){
+      r.exploded = true;
       createBurst(r.tx, r.ty);
-      rockets.splice(i,1);
+      rockets.splice(i, 1);
       continue;
     }
-    if(t < 0) continue;
-    const y = mix(r.y0, r.ty, 1-(1-t)*(1-t));
-    const x = mix(r.x0, r.tx, t) + Math.sin(t*7 + r.phase)*5*(1-t);
-
-    for(let j=1;j<=6;j++){
-      const tt = t - j*0.02; if(tt < 0) break;
-      const yy = mix(r.y0, r.ty, 1-(1-tt)*(1-tt));
-      const xx = mix(r.x0, r.tx, tt) + Math.sin(tt*7 + r.phase)*5*(1-tt);
-      ctx.fillStyle = rgba(r.color, .35*(1-j/6));
-      ctx.beginPath(); ctx.arc(xx,yy, 1.6*(1-j/7), 0, TAU); ctx.fill();
-    }
-    ctx.fillStyle = rgba(COLORS.ivory, .9);
-    ctx.beginPath(); ctx.arc(x,y,2,0,TAU); ctx.fill();
-    glow(x, y, 22, r.color, .35);
-    if(Math.random() < .5){
-      ctx.fillStyle = rgba(COLORS.gold, .5);
-      ctx.beginPath();
-      ctx.arc(x+rand(-4,4), y+rand(0,8), rand(.4,1), 0, TAU);
-      ctx.fill();
-    }
+    
+    /* 绘制火箭尾迹 */
+    ctx.fillStyle = rgba(COLORS.ivory, 0.8);
+    ctx.beginPath();
+    ctx.arc(r.x, r.y, 2, 0, TAU);
+    ctx.fill();
+    
+    ctx.fillStyle = rgba(COLORS.gold, 0.4);
+    ctx.beginPath();
+    ctx.arc(r.x, r.y + 8, 1.5, 0, TAU);
+    ctx.fill();
   }
-
-  /* 绘制绽放 */
+  
+  /* 绘制爆炸 */
   for(let i=bursts.length-1; i>=0; i--){
     const b = bursts[i];
-    const age = globalTime - b.born;
-    if(age > b.life){ bursts.splice(i,1); continue; }
-
-    if(age < .3){
-      const f = 1 - age/.3;
-      glow(b.x, b.y, 26 + 70*f, COLORS.ivory, .32*f);
-    }
-
-    for(const p of b.parts){
-      const local = clamp((age - p.delay)/.8, 0, 1);
-      const e = easeOut(local);
-      const x = b.x + p.ox*e + p.vx*age;
-      const y = b.y + p.oy*e + p.vy*age + age*age*2.2;
-      const fade = 1 - smooth(clamp((age - b.life*.55)/(b.life*.45), 0, 1));
-      const tw = .65 + .35*Math.sin(globalTime*5 + p.tw);
-      const a = fade*local*tw;
-      if(a <= .02) continue;
-
-      ctx.strokeStyle = rgba(p.color, a*.4);
-      ctx.lineWidth = .8;
+    let alive = false;
+    
+    for(let j=b.parts.length-1; j>=0; j--){
+      const p = b.parts[j];
+      p.age += dt;
+      
+      if(p.age > p.life){
+        b.parts.splice(j, 1);
+        continue;
+      }
+      
+      alive = true;
+      p.vy += 50 * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vx *= 0.98;
+      p.vy *= 0.98;
+      
+      const alpha = 1 - p.age / p.life;
+      ctx.fillStyle = rgba(p.color, alpha);
       ctx.beginPath();
-      ctx.moveTo(x - p.ox*.05, y - p.oy*.05);
-      ctx.lineTo(x, y);
-      ctx.stroke();
-
-      ctx.fillStyle = rgba(p.color, a);
-      ctx.beginPath();
-      ctx.arc(x, y, p.size*(.7 + .3*fade), 0, TAU);
+      ctx.arc(p.x, p.y, p.size * alpha, 0, TAU);
       ctx.fill();
     }
+    
+    if(!alive){
+      bursts.splice(i, 1);
+    }
   }
+  
   ctx.restore();
 }
+
+/* 启动定时器 */
+let fallInterval, rocketInterval;
+function startFireworks(){
+  if(fallInterval) return;
+  
+  /* 6 秒后开始掉落烟花 */
+  setTimeout(() => {
+    spawnFallSparks();
+    fallInterval = setInterval(spawnFallSparks, 2000);
+  }, BLOOM_T * 1000);
+  
+  /* 立即开始升起烟花 */
+  launchAutoRocket();
+  rocketInterval = setInterval(launchAutoRocket, 1500);
+}
+
+/* 点击触发烟花 */
+window.addEventListener("pointerdown", e => {
+  if(e.target.closest(".music")) return;
+  tryStartAudio();
+  
+  const tx = clamp(e.clientX, 40, W-40);
+  const ty = clamp(e.clientY, 60, H*0.72);
+  rockets.push({
+    x: tx,
+    y: H + 10,
+    tx: tx,
+    ty: ty,
+    vy: -rand(300, 400),
+    exploded: false
+  });
+});
 
 let floating = [];
 function buildFloating(){
@@ -1068,12 +1053,6 @@ dots.forEach(d => d.addEventListener("click", e => {
   scenes[+d.dataset.i].scrollIntoView({behavior: RM ? "auto" : "smooth"});
 }));
 
-window.addEventListener("pointerdown", e => {
-  if(e.target.closest(".music")) return;
-  tryStartAudio();
-  launchRocket(clamp(e.clientX, 40, W-40), clamp(e.clientY, 60, H*0.72));
-});
-
 function resize(){
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth; H = window.innerHeight;
@@ -1082,7 +1061,17 @@ function resize(){
   canvas.style.height = H + "px";
   ctx.setTransform(DPR,0,0,DPR,0,0);
   buildIntro(); buildFloating(); buildFinal(); buildMotes();
-  fallSparks.length = 0; showerDone = false; nextShower = 0;
+  
+  /* 重启烟花定时器 */
+  if(fallInterval){
+    clearInterval(fallInterval);
+    clearInterval(rocketInterval);
+    fallInterval = null;
+  }
+  fallSparks.length = 0;
+  rockets.length = 0;
+  bursts.length = 0;
+  startFireworks();
 }
 window.addEventListener("resize", () => resize(), {passive:true});
 
@@ -1090,7 +1079,6 @@ function animate(now){
   if(!lastFrame) lastFrame = now;
   const dt = Math.min((now - lastFrame)/1000, .04);
   lastFrame = now;
-  globalTime += dt;
 
   for(let i=0;i<4;i++) clocks[i] += dt*weights[i];
 
@@ -1106,10 +1094,10 @@ function animate(now){
   if(useSynth) tickMusic();
 
   ctx.clearRect(0,0,W,H);
-  drawMotes(globalTime);
+  drawMotes(clocks[0] + clocks[3]);
   drawIntro(clocks[0], weights[0]);
-  drawFall(dt);
-  drawFireworks(dt);
+  drawFallSparks(dt);
+  drawRockets(dt);
   drawFloating(clocks[2], dt*weights[2]*(RM?0.55:1), weights[2]);
   drawFinal(clocks[3], weights[3]);
 
